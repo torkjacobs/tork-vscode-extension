@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import axios, { AxiosInstance } from 'axios';
 
 export interface EvaluationResult {
   decision: 'ALLOW' | 'BLOCK' | 'WARN' | 'REDACT' | 'ESCALATE';
@@ -29,32 +28,62 @@ export interface PolicyValidationResult {
 }
 
 export class TorkApiClient {
-  private client: AxiosInstance;
   private apiKey: string = '';
   private apiUrl: string = 'https://api.tork.network';
+  private timeout: number = 30000;
 
   constructor() {
     this.updateConfiguration();
-    this.client = this.createClient();
   }
 
   updateConfiguration() {
     const config = vscode.workspace.getConfiguration('tork');
     this.apiKey = config.get<string>('apiKey') || '';
     this.apiUrl = config.get<string>('apiUrl') || 'https://api.tork.network';
-    this.client = this.createClient();
   }
 
-  private createClient(): AxiosInstance {
-    return axios.create({
-      baseURL: this.apiUrl,
-      timeout: 30000,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': this.apiKey,
-        'User-Agent': 'tork-vscode-extension/0.1.0',
-      },
-    });
+  private async request<T>(
+    method: 'GET' | 'POST',
+    endpoint: string,
+    body?: Record<string, unknown>,
+    customTimeout?: number
+  ): Promise<T> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), customTimeout || this.timeout);
+
+    try {
+      const response = await fetch(`${this.apiUrl}${endpoint}`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': this.apiKey,
+          'User-Agent': 'tork-vscode-extension/0.1.0',
+        },
+        body: body ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Invalid API key. Please check your tork.apiKey setting.');
+        }
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later.');
+        }
+        const errorText = await response.text();
+        throw new Error(`API error (${response.status}): ${errorText}`);
+      }
+
+      return await response.json() as T;
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out');
+      }
+      throw error;
+    }
   }
 
   async checkConnection(): Promise<boolean> {
@@ -63,12 +92,10 @@ export class TorkApiClient {
     }
 
     try {
-      const response = await this.client.get('/v1/health', {
-        timeout: 5000,
-      });
-      return response.status === 200;
+      await this.request('GET', '/v1/health', undefined, 5000);
+      return true;
     } catch (error) {
-      console.error('Tork API connection check failed:', error);
+      console.error('[Tork API] Connection check failed:', error);
       return false;
     }
   }
@@ -81,23 +108,11 @@ export class TorkApiClient {
       throw new Error('API key not configured. Please set tork.apiKey in settings.');
     }
 
-    try {
-      const response = await this.client.post('/v1/evaluate', {
-        content,
-        policy_id: options?.policyId,
-        context: options?.context,
-      });
-
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401) {
-        throw new Error('Invalid API key. Please check your tork.apiKey setting.');
-      }
-      if (error.response?.status === 429) {
-        throw new Error('Rate limit exceeded. Please try again later.');
-      }
-      throw new Error(`API error: ${error.message}`);
-    }
+    return this.request<EvaluationResult>('POST', '/v1/evaluate', {
+      content,
+      policy_id: options?.policyId,
+      context: options?.context,
+    });
   }
 
   async detectPii(content: string): Promise<{
@@ -112,15 +127,7 @@ export class TorkApiClient {
       throw new Error('API key not configured. Please set tork.apiKey in settings.');
     }
 
-    try {
-      const response = await this.client.post('/v1/pii/detect', {
-        content,
-      });
-
-      return response.data;
-    } catch (error: any) {
-      throw new Error(`PII detection failed: ${error.message}`);
-    }
+    return this.request('POST', '/v1/pii/detect', { content });
   }
 
   async redactPii(content: string, options?: {
@@ -138,17 +145,11 @@ export class TorkApiClient {
       throw new Error('API key not configured. Please set tork.apiKey in settings.');
     }
 
-    try {
-      const response = await this.client.post('/v1/pii/redact', {
-        content,
-        types: options?.types,
-        replacement: options?.replacement || 'placeholder',
-      });
-
-      return response.data;
-    } catch (error: any) {
-      throw new Error(`PII redaction failed: ${error.message}`);
-    }
+    return this.request('POST', '/v1/pii/redact', {
+      content,
+      types: options?.types,
+      replacement: options?.replacement || 'placeholder',
+    });
   }
 
   async validatePolicy(policyYaml: string): Promise<PolicyValidationResult> {
@@ -156,15 +157,9 @@ export class TorkApiClient {
       throw new Error('API key not configured. Please set tork.apiKey in settings.');
     }
 
-    try {
-      const response = await this.client.post('/v1/policies/validate', {
-        policy: policyYaml,
-      });
-
-      return response.data;
-    } catch (error: any) {
-      throw new Error(`Policy validation failed: ${error.message}`);
-    }
+    return this.request<PolicyValidationResult>('POST', '/v1/policies/validate', {
+      policy: policyYaml,
+    });
   }
 
   isConfigured(): boolean {

@@ -42,10 +42,7 @@
     "compliance"
   ],
   "activationEvents": [
-    "onLanguage:yaml",
-    "onLanguage:tork-policy",
-    "workspaceContains:**/*.tork.yaml",
-    "workspaceContains:**/*.tork.yml"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -117,7 +114,7 @@
         },
         "tork.piiPatterns": {
           "type": "array",
-          "default": ["email", "ssn", "phone", "creditCard", "ipAddress"],
+          "default": ["email", "ssn", "phone", "creditCard", "ipAddress", "dateOfBirth", "passport", "driverLicense"],
           "items": {
             "type": "string",
             "enum": ["email", "ssn", "phone", "creditCard", "ipAddress", "dateOfBirth", "passport", "driverLicense"]

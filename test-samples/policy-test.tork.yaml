@@ -1,0 +1,45 @@
+version: "1.0"
+name: content-moderation
+description: Test policy for syntax highlighting
+
+rules:
+  - name: block-pii
+    action: block
+    condition: pii_detected
+    threshold: 0.8
+
+  - name: warn-jailbreak
+    action: warn
+    condition: jailbreak_attempt
+
+  - name: allow-safe
+    action: allow
+    condition: content_safe
+
+  - name: escalate-review
+    action: escalate
+    condition: requires_human_review
+
+thresholds:
+  risk_score: 75
+  confidence: 0.9
+  pii_sensitivity: high
+
+agents:
+  - id: content-analyzer
+    permissions:
+      - read
+      - analyze
+    rate_limit: 100
+
+  - id: moderator-bot
+    permissions:
+      - read
+      - write
+      - moderate
+    rate_limit: 50
+
+logging:
+  enabled: true
+  level: info
+  retention_days: 30

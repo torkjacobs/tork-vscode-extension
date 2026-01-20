@@ -88,7 +88,7 @@ export class PiiDiagnosticsProvider implements vscode.Disposable {
 
   updateConfiguration() {
     const config = vscode.workspace.getConfiguration('tork');
-    this.enabledPatterns = config.get<string[]>('piiPatterns') || ['email', 'ssn', 'phone', 'creditCard', 'ipAddress'];
+    this.enabledPatterns = config.get<string[]>('piiPatterns') || ['email', 'ssn', 'phone', 'creditCard', 'ipAddress', 'dateOfBirth', 'passport', 'driverLicense'];
 
     const severityStr = config.get<string>('piiSeverity') || 'warning';
     switch (severityStr) {

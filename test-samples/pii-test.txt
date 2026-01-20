@@ -1,0 +1,14 @@
+My SSN is 123-45-6789
+Credit card: 4111-1111-1111-1111
+Email: test@example.com
+Phone: (555) 123-4567
+IP Address: 192.168.1.1
+Date of birth: 01/15/1990
+Passport: AB1234567
+Driver's License: D1234567890
+
+This is a normal line without PII.
+Another safe line here.
+
+Mixed content with email john.doe@company.org in the middle.
+Phone number at end: 555-987-6543

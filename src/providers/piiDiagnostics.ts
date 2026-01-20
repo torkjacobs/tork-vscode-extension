@@ -73,17 +73,20 @@ export class PiiDiagnosticsProvider implements vscode.Disposable {
   private severity: vscode.DiagnosticSeverity = vscode.DiagnosticSeverity.Warning;
 
   constructor(context: vscode.ExtensionContext) {
+    console.log('[Tork PII] Initializing PII diagnostics provider...');
+
     this.diagnosticCollection = vscode.languages.createDiagnosticCollection('tork-pii');
     context.subscriptions.push(this.diagnosticCollection);
 
     // Create decoration type for PII highlights
     this.decorationType = vscode.window.createTextEditorDecorationType({
-      backgroundColor: 'rgba(255, 193, 7, 0.2)',
-      border: '1px solid rgba(255, 193, 7, 0.5)',
-      borderRadius: '2px',
+      backgroundColor: 'rgba(255, 193, 7, 0.3)',
+      border: '1px solid rgba(255, 152, 0, 0.8)',
+      borderRadius: '3px',
     });
 
     this.updateConfiguration();
+    console.log(`[Tork PII] Initialized with ${this.enabledPatterns.length} patterns: ${this.enabledPatterns.join(', ')}`);
   }
 
   updateConfiguration() {
@@ -126,8 +129,11 @@ export class PiiDiagnosticsProvider implements vscode.Disposable {
   }
 
   scanDocument(document: vscode.TextDocument): PiiMatch[] {
+    console.log(`[Tork PII] Scanning document: ${document.fileName}`);
+
     const config = vscode.workspace.getConfiguration('tork');
-    if (!config.get<boolean>('enablePiiDetection')) {
+    if (!config.get<boolean>('enablePiiDetection', true)) {
+      console.log('[Tork PII] Detection disabled, clearing diagnostics');
       this.diagnosticCollection.delete(document.uri);
       return [];
     }
@@ -135,6 +141,9 @@ export class PiiDiagnosticsProvider implements vscode.Disposable {
     const text = document.getText();
     const diagnostics: vscode.Diagnostic[] = [];
     const matches: PiiMatch[] = [];
+
+    console.log(`[Tork PII] Enabled patterns: ${this.enabledPatterns.join(', ')}`);
+    console.log(`[Tork PII] Document length: ${text.length} characters`);
 
     for (const pattern of PII_PATTERNS) {
       if (!this.enabledPatterns.includes(pattern.name)) {
@@ -158,6 +167,8 @@ export class PiiDiagnosticsProvider implements vscode.Disposable {
         };
         matches.push(piiMatch);
 
+        console.log(`[Tork PII] Found ${pattern.name}: "${match[0]}" at line ${startPos.line + 1}`);
+
         const diagnostic = new vscode.Diagnostic(
           range,
           `Potential PII detected: ${pattern.description}`,
@@ -165,12 +176,13 @@ export class PiiDiagnosticsProvider implements vscode.Disposable {
         );
         diagnostic.code = `tork-pii-${pattern.name}`;
         diagnostic.source = 'Tork';
-        diagnostic.tags = [vscode.DiagnosticTag.Unnecessary];
+        // Removed DiagnosticTag.Unnecessary - it causes grayed-out text
 
         diagnostics.push(diagnostic);
       }
     }
 
+    console.log(`[Tork PII] Total matches found: ${matches.length}`);
     this.diagnosticCollection.set(document.uri, diagnostics);
     this.updateDecorations(document, matches);
 

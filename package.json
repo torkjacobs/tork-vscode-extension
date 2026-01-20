@@ -1,0 +1,231 @@
+{
+  "name": "tork-governance",
+  "displayName": "Tork AI Governance",
+  "description": "AI governance, policy validation, and PII detection for VS Code",
+  "version": "0.1.0",
+  "publisher": "torknetwork",
+  "author": {
+    "name": "Tork Network",
+    "email": "hello@tork.network",
+    "url": "https://tork.network"
+  },
+  "license": "MIT",
+  "icon": "images/tork-icon.png",
+  "galleryBanner": {
+    "color": "#1a1a2e",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/torkjacobs/tork-vscode-extension"
+  },
+  "bugs": {
+    "url": "https://github.com/torkjacobs/tork-vscode-extension/issues"
+  },
+  "homepage": "https://tork.network",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "governance",
+    "pii",
+    "security",
+    "policy",
+    "yaml",
+    "llm",
+    "compliance"
+  ],
+  "activationEvents": [
+    "onLanguage:yaml",
+    "onLanguage:tork-policy",
+    "workspaceContains:**/*.tork.yaml",
+    "workspaceContains:**/*.tork.yml"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "tork.evaluateSelection",
+        "title": "Tork: Evaluate Selected Text",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "tork.insertPolicyTemplate",
+        "title": "Tork: Insert Policy Template",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "tork.scanForPii",
+        "title": "Tork: Scan File for PII",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "tork.redactPii",
+        "title": "Tork: Redact PII in Selection",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "tork.configureApiKey",
+        "title": "Tork: Configure API Key",
+        "icon": "$(key)"
+      },
+      {
+        "command": "tork.validatePolicy",
+        "title": "Tork: Validate Policy File",
+        "icon": "$(check)"
+      }
+    ],
+    "configuration": {
+      "title": "Tork AI Governance",
+      "properties": {
+        "tork.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for Tork AI Governance service",
+          "scope": "application"
+        },
+        "tork.apiUrl": {
+          "type": "string",
+          "default": "https://api.tork.network",
+          "description": "API endpoint for Tork service",
+          "scope": "application"
+        },
+        "tork.enablePiiDetection": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic PII detection in open files",
+          "scope": "resource"
+        },
+        "tork.piiSeverity": {
+          "type": "string",
+          "default": "warning",
+          "enum": ["hint", "information", "warning", "error"],
+          "enumDescriptions": [
+            "Show PII as hints (subtle)",
+            "Show PII as information",
+            "Show PII as warnings",
+            "Show PII as errors"
+          ],
+          "description": "Severity level for PII detection diagnostics",
+          "scope": "resource"
+        },
+        "tork.piiPatterns": {
+          "type": "array",
+          "default": ["email", "ssn", "phone", "creditCard", "ipAddress"],
+          "items": {
+            "type": "string",
+            "enum": ["email", "ssn", "phone", "creditCard", "ipAddress", "dateOfBirth", "passport", "driverLicense"]
+          },
+          "description": "PII patterns to detect",
+          "scope": "resource"
+        },
+        "tork.autoScanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically scan for PII when saving files",
+          "scope": "resource"
+        },
+        "tork.excludePatterns": {
+          "type": "array",
+          "default": ["**/node_modules/**", "**/dist/**", "**/.git/**"],
+          "description": "File patterns to exclude from PII scanning",
+          "scope": "resource"
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "tork-policy",
+        "aliases": ["Tork Policy", "tork"],
+        "extensions": [".tork.yaml", ".tork.yml"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tork-policy",
+        "scopeName": "source.tork",
+        "path": "./syntaxes/tork.tmLanguage.json"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "tork.evaluateSelection",
+          "when": "editorHasSelection",
+          "group": "tork@1"
+        },
+        {
+          "command": "tork.redactPii",
+          "when": "editorHasSelection",
+          "group": "tork@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "tork.scanForPii",
+          "group": "navigation",
+          "when": "editorLangId != tork-policy"
+        },
+        {
+          "command": "tork.validatePolicy",
+          "group": "navigation",
+          "when": "editorLangId == tork-policy"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "tork.evaluateSelection",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "tork.insertPolicyTemplate",
+        "key": "ctrl+shift+p t",
+        "mac": "cmd+shift+p t",
+        "when": "editorLangId == tork-policy || editorLangId == yaml"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "tork-policy",
+        "path": "./snippets/tork-snippets.json"
+      },
+      {
+        "language": "yaml",
+        "path": "./snippets/tork-snippets.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.22.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "yaml": "^2.3.4"
+  }
+}

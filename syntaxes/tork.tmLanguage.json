@@ -1,0 +1,181 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Tork Policy",
+  "scopeName": "source.tork",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#keywords" },
+    { "include": "#actions" },
+    { "include": "#conditions" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#booleans" },
+    { "include": "#variables" },
+    { "include": "#pii-types" },
+    { "include": "#severity-levels" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.tork",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.tork",
+          "match": "\\b(rules|policies|policy|rule|name|description|version|metadata)\\b"
+        },
+        {
+          "name": "keyword.other.tork",
+          "match": "\\b(match|when|then|else|and|or|not|in|contains|matches|startsWith|endsWith)\\b"
+        },
+        {
+          "name": "storage.type.tork",
+          "match": "\\b(string|number|boolean|array|object|any|null)\\b"
+        },
+        {
+          "name": "keyword.operator.tork",
+          "match": "\\b(equals|notEquals|greaterThan|lessThan|greaterThanOrEquals|lessThanOrEquals)\\b"
+        }
+      ]
+    },
+    "actions": {
+      "patterns": [
+        {
+          "name": "entity.name.function.action.tork",
+          "match": "\\b(action|actions)\\s*:"
+        },
+        {
+          "name": "constant.language.action.allow.tork",
+          "match": "\\b(ALLOW|allow|Allow)\\b"
+        },
+        {
+          "name": "constant.language.action.block.tork",
+          "match": "\\b(BLOCK|block|Block|DENY|deny|Deny)\\b"
+        },
+        {
+          "name": "constant.language.action.warn.tork",
+          "match": "\\b(WARN|warn|Warn|WARNING|warning|Warning)\\b"
+        },
+        {
+          "name": "constant.language.action.redact.tork",
+          "match": "\\b(REDACT|redact|Redact|MASK|mask|Mask)\\b"
+        },
+        {
+          "name": "constant.language.action.escalate.tork",
+          "match": "\\b(ESCALATE|escalate|Escalate|REVIEW|review|Review|HITL|hitl)\\b"
+        },
+        {
+          "name": "constant.language.action.log.tork",
+          "match": "\\b(LOG|log|Log|AUDIT|audit|Audit)\\b"
+        }
+      ]
+    },
+    "conditions": {
+      "patterns": [
+        {
+          "name": "support.type.condition.tork",
+          "match": "\\b(condition|conditions|if|unless|threshold|limit|rate_limit|max|min|timeout)\\b"
+        },
+        {
+          "name": "support.type.target.tork",
+          "match": "\\b(target|targets|source|destination|input|output|content|context|user|agent|tool)\\b"
+        },
+        {
+          "name": "support.type.filter.tork",
+          "match": "\\b(filter|filters|include|exclude|pattern|patterns|regex)\\b"
+        }
+      ]
+    },
+    "pii-types": {
+      "patterns": [
+        {
+          "name": "variable.other.pii.tork",
+          "match": "\\b(EMAIL|email|SSN|ssn|PHONE|phone|CREDIT_CARD|credit_card|creditCard|IP_ADDRESS|ip_address|ipAddress|ADDRESS|address|NAME|name|DOB|dob|DATE_OF_BIRTH|PASSPORT|passport|DRIVER_LICENSE|driver_license|driverLicense|BANK_ACCOUNT|bank_account|bankAccount|API_KEY|api_key|apiKey|PASSWORD|password|SECRET|secret)\\b"
+        }
+      ]
+    },
+    "severity-levels": {
+      "patterns": [
+        {
+          "name": "markup.deleted.severity.critical.tork",
+          "match": "\\b(CRITICAL|critical|Critical)\\b"
+        },
+        {
+          "name": "markup.changed.severity.high.tork",
+          "match": "\\b(HIGH|high|High)\\b"
+        },
+        {
+          "name": "markup.heading.severity.medium.tork",
+          "match": "\\b(MEDIUM|medium|Medium)\\b"
+        },
+        {
+          "name": "markup.quote.severity.low.tork",
+          "match": "\\b(LOW|low|Low)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.tork",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.tork",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.tork",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.tork",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.tork",
+          "match": "\\b[0-9]+(\\.[0-9]+)?\\b"
+        }
+      ]
+    },
+    "booleans": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.true.tork",
+          "match": "\\b(true|True|TRUE|yes|Yes|YES|on|On|ON|enabled|Enabled|ENABLED)\\b"
+        },
+        {
+          "name": "constant.language.boolean.false.tork",
+          "match": "\\b(false|False|FALSE|no|No|NO|off|Off|OFF|disabled|Disabled|DISABLED)\\b"
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "name": "variable.other.placeholder.tork",
+          "match": "\\$\\{[^}]+\\}"
+        },
+        {
+          "name": "variable.other.env.tork",
+          "match": "\\$[A-Z_][A-Z0-9_]*"
+        }
+      ]
+    }
+  }
+}
